@@ -1,0 +1,162 @@
+```{r}
+# Load required libraries
+library(dplyr)
+library(caret)
+library(randomForest)
+library(ggplot2)
+
+
+
+# Load the dataset
+data <- read.csv("C:/Users/jeeva/OneDrive/Desktop/project/heart_attack_prediction_dataset_1.csv")
+
+```
+
+```{r}
+str(data)
+```
+
+
+```{r}
+summary(data)
+```
+
+
+
+```{r}
+dim(data)
+```
+
+
+
+```{r}
+names(data)
+```
+
+
+```{r}
+data[duplicated(data),]
+```
+
+
+
+```{r}
+colSums(sapply(data,is.na))
+```
+
+
+
+
+```{r}
+dim(trainData)
+dim(testData)
+```
+
+
+```{r}
+trainData
+```
+
+
+```{r}
+testData
+```
+
+
+```{r}
+# Convert target variable to factor if binary
+
+  data$Heart.Attack.Risk <- as.factor(data$Heart.Attack.Risk)
+
+  
+
+# Define predictors and target variable
+predictors <- c("Age", "Sex", "Heart.Rate", "Family.History", "Smoking", 
+                "Alcohol.Consumption", "Previous.Heart.Problems", "Country", "Continent")
+target <- "Heart.Attack.Risk"
+
+
+# Split the data into training and testing sets
+set.seed(123)
+trainIndex <- createDataPartition(data[[target]], p = 0.8, list = FALSE)
+trainData <- data[trainIndex, ]
+testData <- data[-trainIndex, ]
+
+
+
+# Train a Random Forest model
+model <- randomForest(as.formula(paste(target, "~", paste(predictors, collapse = " + "))),
+                      data = trainData,
+                      ntree = 100,        # Number of trees
+                      mtry = sqrt(length(predictors)), # Number of features per split
+                      importance = TRUE, # Calculate variable importance
+                      na.action = na.omit)
+
+# Make predictions on training and testing sets
+trainPredictions <- predict(model, newdata = trainData)
+testPredictions <- predict(model, newdata = testData)
+
+
+# Overall accuracy
+Predictions <- predict(model, newdata = data)
+overallAccuracy <- mean(Predictions == data[[target]])
+
+
+cat(" Accuracy:", overallAccuracy*100, "\n")
+
+```
+
+```{r}
+?mtry
+```
+
+
+
+
+
+```{r}
+
+
+# Histogram of Age distribution
+ggplot(data, aes(x = Age, fill = Heart.Attack.Risk)) +
+  geom_histogram(bins = 30, alpha = 0.7, position = "identity") +
+  labs(title = "Age Distribution by Heart Attack Risk", x = "Age", y = "Count") +
+  theme_minimal()
+```
+
+```{r}
+# Boxplot of Cholesterol levels by Heart Attack Risk
+ggplot(data, aes(x = Heart.Attack.Risk, y = Cholesterol, fill = Heart.Attack.Risk)) +
+  geom_boxplot() +
+  labs(title = "Cholesterol Levels by Heart Attack Risk", x = "Heart Attack Risk", y = "Cholesterol Level") +
+  theme_minimal()
+```
+
+```{r}
+# Bar plot of Smoking status by Heart Attack Risk
+ggplot(data, aes(x = as.factor(Smoking), fill = Heart.Attack.Risk)) +
+  geom_bar(position = "dodge") +
+  labs(title = "Smoking vs Heart Attack Risk", x = "Smoking (0 = No, 1 = Yes)", y = "Count") +
+  theme_minimal()
+```
+
+```{r}
+# Scatter plot of BMI vs Age colored by Heart Attack Risk
+ggplot(data, aes(x = Age, y = BMI, color = Heart.Attack.Risk)) +
+  geom_point(alpha = 0.6) +
+  labs(title = "BMI vs Age by Heart Attack Risk", x = "Age", y = "BMI") +
+  theme_minimal()
+```
+
+```{r}
+# Bar plot of Physical Activity per Week by Heart Attack Risk
+ggplot(data, aes(x = as.factor(Physical.Activity.Days.Per.Week), fill = Heart.Attack.Risk)) +
+  geom_bar(position = "dodge") +
+  labs(title = "Physical Activity vs Heart Attack Risk", x = "Days of Physical Activity per Week", y = "Count") +
+  theme_minimal()
+
+```
+
+
+
+
